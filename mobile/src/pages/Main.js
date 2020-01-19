@@ -3,12 +3,14 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 import { StyleSheet, Image, View, Text, TextInput, TouchableOpacity } from 'react-native';
 import { requestPermissionsAsync, getCurrentPositionAsync } from 'expo-location';
 import { MaterialIcons } from '@expo/vector-icons';
+
 import api from '../services/api';
+import { connect, disconnect, subcrib eToNewDevs, subcribeToNewDevs } from '../services/socket';
 
 function Main({ navigation }) {
   const [devs, setDevs] = useState([]);
   const [currentRegion, setCurrentRegion] = useState(null);
-  const [techs,setTechs] = useState('');
+  const [techs, setTechs] = useState('');
 
   useEffect(() => {
     async function loadInitialPosition() {
@@ -24,13 +26,29 @@ function Main({ navigation }) {
         setCurrentRegion({
           latitude,
           longitude,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.02,
         })
       }
     }
     loadInitialPosition();
   }, [])
+
+  useEffect(() => {
+    subcribeToNewDevs(dev => setDevs([...devs, dev]))
+  }, [devs])
+
+  function setupWebsocket() {
+    disconnect();
+
+    const { latitude, longitude } = currentRegion;
+
+    connect(
+      latitude,
+      longitude,
+      techs,
+    );
+  }
 
   async function loadDevs() {
     const { latitude, longitude } = currentRegion;
@@ -43,6 +61,7 @@ function Main({ navigation }) {
       }
     });
     setDevs(response.data.devs);
+    setupWebsocket();
   }
   function handleRegionChanged(region) {
     setCurrentRegion(region);

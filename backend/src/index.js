@@ -1,10 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const http = require('http');
 
 const routes = require('./routes');
+const { setupWebsocket } = require('./websocket');
 
 const app = express();
+const server = http.Server(app);
+
+setupWebsocket(server);
 
 mongoose.connect(
   'mongodb+srv://admin:admin@cluster0-9fkne.mongodb.net/week10?retryWrites=true&w=majority',
@@ -18,17 +23,6 @@ mongoose.connect(
 app.use(cors());
 
 app.use(express.json());
-
-// Metodos HTTP: GET, POST, PUT, DELETE
-
-// Tipos de parametros:
-
-// Query Params: request.query (Filtros, ordenação, paginação ...)
-// Route Params: request.params (Identificar um recurso na alteração ou remoção)
-// Body Params : request.body (Dados para criação  ou alteração de um registro)
-
-// MongoDB (Não-relacional)
-
 app.use(routes);
 
-app.listen(3333);
+server.listen(3333);
